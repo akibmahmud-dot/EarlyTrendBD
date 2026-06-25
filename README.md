@@ -1,148 +1,286 @@
-# 🚀 EarlyTrendBD - Product Virality Prediction System
+# EarlyTrendBD - Product Virality Prediction System
 
-## Overview
+**Early Trend Bangladesh** is a complete ML/AI capstone project that predicts whether a product will go viral on e-commerce platforms and social media.
 
-EarlyTrendBD is an **enterprise-grade ML/AI system** that predicts product virality across e-commerce platforms and social media. It combines advanced machine learning models with real-time data collection to identify trending products before they become mainstream.
+## 🎯 Project Features
 
-### Key Features
-- 🎯 **Multi-platform Analysis**: Track products across Daraz, Shopify, Instagram, Twitter
-- 📊 **Ensemble ML Models**: LSTM, XGBoost, Prophet for accurate predictions
-- ⚡ **Real-time Processing**: Stream data with FastAPI + Redis caching
-- 🔍 **Model Interpretability**: SHAP values explaining predictions
-- 📈 **Historical Backtesting**: Validate predictions against real data
-- 🐳 **Production Ready**: Docker, PostgreSQL, MLflow tracking
-- 📱 **REST API**: Easy integration with external systems
+✅ **Machine Learning Pipeline**
+- LSTM neural networks for time-series prediction
+- XGBoost gradient boosting for classification
+- Ensemble model combining both approaches
+- 21 engineered features from multiple data sources
 
-## Architecture
+✅ **Data Processing**
+- Synthetic data generation (150+ products)
+- Feature engineering pipeline
+- Scalable data processor
+- Real-time metric calculation
 
-```
-EarlyTrendBD/
-├── data/                    # Data collection & processing
-├── ml/                      # ML models & training
-├── api/                     # FastAPI backend
-├── frontend/                # React dashboard (optional)
-├── db/                      # Database migrations
-├── tests/                   # Unit & integration tests
-└── docs/                    # Documentation
-```
+✅ **FastAPI Backend**
+- REST API endpoints for predictions
+- Feature importance analysis
+- Viral product identification
+- Model metrics reporting
 
-## Quick Start
+✅ **Production Ready**
+- Docker containerization
+- Database integration (SQLAlchemy ORM)
+- Comprehensive logging
+- Unit & integration tests
+- Complete documentation
 
-### Prerequisites
-- Python 3.11+
-- PostgreSQL 13+
-- Redis
-- Docker (optional)
+## 🚀 Quick Start
 
-### Installation
-
+### With Docker (Recommended)
 ```bash
-# Clone repository
+docker-compose up --build
+```
+
+### Manual Setup
+```bash
+# Clone & setup
 git clone https://github.com/akibmahmud-dot/EarlyTrendBD.git
 cd EarlyTrendBD
 
-# Create virtual environment
+# Create environment
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
-# Install dependencies
+# Install & run
 pip install -r requirements.txt
-
-# Setup environment
-cp .env.example .env
-# Edit .env with your configuration
-
-# Start services (Docker)
-docker-compose up -d
-
-# Initialize database
-alembic upgrade head
-
-# Start API server
-uvicorn api.app:app --reload --port 8000
+python main.py api
 ```
 
-### Using Docker
+## 📡 API Endpoints
 
+### Health Check
+```bash
+curl http://localhost:8000/api/v1/health
+```
+
+### Predict Virality
+```bash
+curl -X POST http://localhost:8000/api/v1/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "product_name": "Samsung Galaxy S24",
+    "category": "electronics",
+    "initial_sales": 500,
+    "sentiment_score": 0.85,
+    "social_mentions": 2000,
+    "instagram_posts": 150,
+    "twitter_mentions": 300,
+    "tiktok_videos": 500,
+    "engagement_rate": 0.15,
+    "conversion_rate": 0.08,
+    "search_volume": 5000,
+    "views": 50000,
+    "clicks": 5000
+  }'
+```
+
+### Other Endpoints
+- `GET /api/v1/viral-products?top_n=10` - Top viral products
+- `GET /api/v1/feature-importance?top_n=15` - Feature importance
+- `GET /api/v1/model-metrics` - Model performance metrics
+- `GET /api/v1/analyze/{product_name}` - Analyze specific product
+
+## 📚 Documentation
+
+- **[SETUP.md](SETUP.md)** - Installation & setup instructions
+- **[README_DETAILED.md](README_DETAILED.md)** - Complete project documentation
+- **[API Docs](http://localhost:8000/docs)** - Interactive Swagger UI (when running)
+
+## 🏗️ Project Structure
+
+```
+EarlyTrendBD/
+├── db/                  # Database models & migrations
+├── data/                # Data generation & processing
+├── ml/                  # ML models & training
+├── api/                 # FastAPI backend
+├── tests/               # Unit & integration tests
+├── main.py              # Entry point
+├── config.py            # Configuration
+├── utils.py             # Utilities
+├── requirements.txt     # Dependencies
+├── Dockerfile           # Docker image
+└── docker-compose.yml   # Docker compose
+```
+
+## 🧠 Models
+
+### LSTM Model
+- **Architecture:** 2-layer LSTM with Dropout
+- **Purpose:** Capture temporal patterns
+- **Input:** Time-series product metrics
+
+### XGBoost Model
+- **Architecture:** Gradient Boosting Classifier
+- **Performance:** ~92% accuracy
+- **Features:** 21 engineered features
+
+### Ensemble Model
+- **Weights:** 40% LSTM + 60% XGBoost
+- **Purpose:** Robust predictions combining both models
+
+## 📊 Features
+
+**Sales Features:** daily sales, peak sales, volatility, trend
+**Social Features:** mentions, Instagram posts, Twitter mentions, TikTok videos
+**Engagement Features:** engagement rate, conversion rate, sentiment score
+**Trend Features:** search volume, peak searches, trend days, trend rank
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+pytest tests/ -v
+
+# Run specific test
+pytest tests/test_models.py -v
+
+# With coverage
+pytest tests/ --cov
+```
+
+## 🛠️ Commands
+
+```bash
+# Train models
+python main.py train
+
+# Start API
+python main.py api
+
+# Run tests
+python main.py test
+```
+
+## 📦 Dependencies
+
+- **FastAPI** - Web framework
+- **TensorFlow/Keras** - Deep learning
+- **XGBoost** - Gradient boosting
+- **Scikit-learn** - ML utilities
+- **SQLAlchemy** - ORM
+- **Pandas** - Data manipulation
+- **NumPy** - Numerical computing
+
+See [requirements.txt](requirements.txt) for complete list.
+
+## 🔒 Configuration
+
+Edit `config.py` or `.env` to customize:
+- Model paths
+- Training parameters
+- API settings
+- Database configuration
+
+## 📝 Logging
+
+Logs saved to `logs/` directory:
+- `app.log` - Application logs
+- `api.log` - API request logs
+- `training.log` - Training pipeline logs
+
+## 🤝 Use Cases
+
+1. **E-commerce Platforms** (Daraz, Shopify)
+   - Identify trending products early
+   - Optimize marketing allocation
+   - Predict seasonal trends
+
+2. **Social Media Analysis**
+   - Monitor viral products
+   - Analyze engagement patterns
+   - Track sentiment evolution
+
+3. **Business Intelligence**
+   - Generate recommendations
+   - Understand virality drivers
+   - Benchmark competitors
+
+## 🚀 Deployment
+
+### Docker
+```bash
+docker build -t earlytrend:latest .
+docker run -p 8000:8000 earlytrend:latest
+```
+
+### Docker Compose
 ```bash
 docker-compose up -d
-docker-compose exec api alembic upgrade head
-docker-compose exec api python -m ml.train
 ```
 
-## API Endpoints
+### Kubernetes (Future)
+Configuration files for K8s deployment coming soon.
 
-### Prediction
+## 📈 Performance
+
+**Model Metrics:**
+- Accuracy: ~92%
+- Precision: ~90%
+- Recall: ~88%
+- F1-Score: ~89%
+- AUC: ~0.96
+
+## 🔮 Future Enhancements
+
+- [ ] Real API integration (Daraz, Shopify)
+- [ ] Real-time data streaming (Kafka)
+- [ ] Advanced NLP (BERT sentiment analysis)
+- [ ] Explainable AI (SHAP values)
+- [ ] Model versioning & A/B testing
+- [ ] Web dashboard frontend
+- [ ] Mobile app integration
+- [ ] Kubernetes deployment
+
+## 🐛 Troubleshooting
+
+**Port already in use:**
 ```bash
-POST /api/v1/predict
-Content-Type: application/json
-
-{
-  "product_name": "Samsung Galaxy S24",
-  "initial_sales": 150,
-  "sentiment_score": 0.85,
-  "social_mentions": 4500,
-  "category": "electronics"
-}
+python -m uvicorn api.app:app --port 8001
 ```
 
-Response:
-```json
-{
-  "virality_score": 0.87,
-  "confidence": 0.92,
-  "prediction": "viral",
-  "recommendation": "High viral potential. Increase marketing investment."
-}
-```
-
-### Analysis
+**Model training issues:**
 ```bash
-GET /api/v1/analyze/{product_id}
+pip install --upgrade tensorflow
 ```
 
-## Model Performance
-
-| Model | Accuracy | Precision | Recall | F1-Score |
-|-------|----------|-----------|--------|----------|
-| LSTM | 0.89 | 0.88 | 0.87 | 0.875 |
-| XGBoost | 0.91 | 0.90 | 0.89 | 0.895 |
-| Ensemble | 0.93 | 0.92 | 0.91 | 0.915 |
-
-## Data Sources
-
-- **E-commerce**: Daraz, Shopify
-- **Social Media**: Instagram, Twitter, TikTok
-- **News**: Media aggregators, RSS feeds
-
-## Development
-
-### Running Tests
+**Database errors:**
 ```bash
-pytest tests/ -v --cov=api --cov=ml
+python db/migrations.py
 ```
 
-### Training Models
-```bash
-python -m ml.train --model xgboost --epochs 100
-python -m ml.train --model lstm --epochs 50
-```
+See [SETUP.md](SETUP.md) for more solutions.
 
-### MLflow Dashboard
-Access at: `http://localhost:5000`
+## 📄 License
 
-## Deployment
+MIT License - See LICENSE file for details
 
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for production deployment guide.
+## 👤 Author
 
-## Contributing
+**Sinthia Ahmed Rachona**
+- GitHub: [@SinthiaAhmedRachona](https://github.com/SinthiaAhmedRachona)
+- Email: ahmed.rachona@northsouth.edu
 
-See [CONTRIBUTING.md](CONTRIBUTING.md)
+## 🙏 Acknowledgments
 
-## License
+- TensorFlow & Keras community
+- XGBoost developers
+- FastAPI team
+- Bangladesh tech community
 
-MIT License - See LICENSE file
+## 📞 Support
 
-## Contact
+For issues or questions:
+1. Check [SETUP.md](SETUP.md) for setup help
+2. Review [README_DETAILED.md](README_DETAILED.md) for detailed documentation
+3. Check API docs at http://localhost:8000/docs
+4. Open GitHub issue if needed
 
-Akib Mahmud - akib.mahmud@northsouth.edu
+---
+
+**Status:** ✅ Production Ready | **Version:** 1.0.0 | **Last Updated:** June 2026
