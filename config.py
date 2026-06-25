@@ -1,41 +1,62 @@
 import os
 from dotenv import load_dotenv
-from pathlib import Path
 
 load_dotenv()
 
-BASE_DIR = Path(__file__).resolve().parent
+# Application Settings
+APP_NAME = "EarlyTrendBD"
+APP_VERSION = "1.0.0"
+APP_DESCRIPTION = "ML/AI system for predicting product virality"
 
-# Database
-DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///./earlytrendbd.db')
-DATABASE_ECHO = os.getenv('DEBUG', 'False') == 'True'
+# API Settings
+API_HOST = os.getenv("API_HOST", "0.0.0.0")
+API_PORT = int(os.getenv("API_PORT", 8000))
+API_DEBUG = os.getenv("API_DEBUG", "True") == "True"
 
-# API
-API_HOST = os.getenv('API_HOST', '0.0.0.0')
-API_PORT = int(os.getenv('API_PORT', 8000))
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
-API_TITLE = 'EarlyTrendBD API'
-API_VERSION = '1.0.0'
+# Database Settings
+DATABASE_URL = os.getenv(
+    "DATABASE_URL", 
+    "sqlite:///./earlytrend.db"
+)
 
-# Model
-MODEL_PATH = os.getenv('MODEL_PATH', './models/trained_models')
-MLFLOW_TRACKING_URI = os.getenv('MLFLOW_TRACKING_URI', 'http://localhost:5000')
+# Model Settings
+MODEL_PATH = os.getenv("MODEL_PATH", "models/trained_models")
+DATA_PATH = os.getenv("DATA_PATH", "data/processed")
+LOG_PATH = os.getenv("LOG_PATH", "logs")
 
-# Data Collection
-DATA_COLLECTION_INTERVAL = int(os.getenv('DATA_COLLECTION_INTERVAL', 3600))
-MAX_WORKERS = int(os.getenv('MAX_WORKERS', 5))
+# Training Settings
+NUM_PRODUCTS = int(os.getenv("NUM_PRODUCTS", 150))
+DAYS_HISTORY = int(os.getenv("DAYS_HISTORY", 30))
+TRAIN_EPOCHS = int(os.getenv("TRAIN_EPOCHS", 50))
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", 32))
 
-# API Keys
-SHOPIFY_API_KEY = os.getenv('SHOPIFY_API_KEY', '')
-INSTAGRAM_ACCESS_TOKEN = os.getenv('INSTAGRAM_ACCESS_TOKEN', '')
-TWITTER_BEARER_TOKEN = os.getenv('TWITTER_BEARER_TOKEN', '')
-DARAZ_API_KEY = os.getenv('DARAZ_API_KEY', '')
+# Model Architecture
+LSTM_SEQUENCE_LENGTH = int(os.getenv("LSTM_SEQUENCE_LENGTH", 7))
+XGBOOST_MAX_DEPTH = int(os.getenv("XGBOOST_MAX_DEPTH", 7))
+XGBOOST_N_ESTIMATORS = int(os.getenv("XGBOOST_N_ESTIMATORS", 100))
 
-# Paths
-DATA_DIR = BASE_DIR / 'data' / 'raw'
-PROCESSED_DATA_DIR = BASE_DIR / 'data' / 'processed'
-LOGS_DIR = BASE_DIR / 'logs'
+# Ensemble Weights
+LSTM_WEIGHT = float(os.getenv("LSTM_WEIGHT", 0.4))
+XGBOOST_WEIGHT = float(os.getenv("XGBOOST_WEIGHT", 0.6))
 
-# Create directories if they don't exist
-for directory in [DATA_DIR, PROCESSED_DATA_DIR, LOGS_DIR]:
-    directory.mkdir(parents=True, exist_ok=True)
+# Feature Settings
+FEATURE_SCALING = os.getenv("FEATURE_SCALING", "standard") == "standard"
+FEATURE_COUNT = int(os.getenv("FEATURE_COUNT", 21))
+
+# Logging
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+
+# Create required directories
+for path in [MODEL_PATH, DATA_PATH, LOG_PATH]:
+    os.makedirs(path, exist_ok=True)
+
+print(f"""
+╔════════════════════════════════════════╗
+║      EarlyTrendBD Configuration        ║
+╠════════════════════════════════════════╣
+║ App: {APP_NAME} v{APP_VERSION:<23}║
+║ API: {API_HOST}:{API_PORT:<30}║
+║ Models: {MODEL_PATH:<29}║
+║ Database: {os.path.basename(DATABASE_URL):<28}║
+╚════════════════════════════════════════╝
+""")
