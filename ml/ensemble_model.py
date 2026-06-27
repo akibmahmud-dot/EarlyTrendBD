@@ -27,30 +27,51 @@ class EnsembleViralityPredictor:
     
     def predict(self, X: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Make ensemble predictions"""
-        predictions = np.zeros(len(X) if len(X.shape) > 1 else 1)
+        n = len(X) if len(X.shape) > 1 else 1
+        xgb_pred = None
+        lstm_pred = None
         
         if self.xgboost_model:
             try:
                 xgb_pred, _ = self.xgboost_model.predict(X)
-                predictions += self.weights['xgboost'] * xgb_pred
+                xgb_pred = np.asarray(xgb_pred).flatten()
             except Exception as e:
                 logger.warning(f"XGBoost prediction failed: {e}")
         
         if self.lstm_model:
             try:
-                lstm_pred, _ = self.lstm_model.predict(X)
-                if isinstance(lstm_pred, np.ndarray):
-                    lstm_pred = lstm_pred.flatten()
-                predictions += self.weights['lstm'] * lstm_pred[:len(predictions)]
+                raw_lstm_pred, _ = self.lstm_model.predict(X)
+                raw_lstm_pred = np.asarray(raw_lstm_pred).flatten()
+                if len(raw_lstm_pred) < n:
+                    # LSTM needs `sequence_length` rows of history before its first
+                    # prediction, so it returns fewer rows than XGBoost for a big batch.
+                    # Pad the front with its first available prediction so shapes align
+                    # instead of silently dropping LSTM's contribution.
+                    pad = n - len(raw_lstm_pred)
+                    fill_value = raw_lstm_pred[0] if len(raw_lstm_pred) > 0 else 0.5
+                    lstm_pred = np.concatenate([np.full(pad, fill_value), raw_lstm_pred])
+                else:
+                    lstm_pred = raw_lstm_pred[:n]
             except Exception as e:
                 logger.warning(f"LSTM prediction failed: {e}")
         
-        # If only one model available, use its predictions
-        if predictions.sum() == 0:
-            if self.xgboost_model:
-                predictions, _ = self.xgboost_model.predict(X)
-            elif self.lstm_model:
-                predictions, _ = self.lstm_model.predict(X)
+        # Use only the models that actually produced a prediction, renormalizing
+        # weights so a missing model doesn't silently cap the final score.
+        active_weights = {}
+        if xgb_pred is not None:
+            active_weights['xgboost'] = self.weights['xgboost']
+        if lstm_pred is not None:
+            active_weights['lstm'] = self.weights['lstm']
+        
+        if not active_weights:
+            raise ValueError("Ensemble has no usable model to predict with.")
+        
+        weight_total = sum(active_weights.values())
+        predictions = np.zeros(n)
+        if xgb_pred is not None:
+            predictions += (active_weights['xgboost'] / weight_total) * xgb_pred
+        if lstm_pred is not None:
+            predictions += (active_weights['lstm'] / weight_total) * lstm_pred
         
         return predictions, predictions > 0.5
     

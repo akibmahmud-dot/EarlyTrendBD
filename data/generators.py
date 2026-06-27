@@ -1,7 +1,7 @@
 import os
 import json
 import random
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict
 import pandas as pd
 from loguru import logger
@@ -44,7 +44,7 @@ class SyntheticDataGenerator:
             "description": f"High-quality product with excellent features",
             "initial_price": round(random.uniform(50, 2000), 2),
             "image_url": f"https://via.placeholder.com/300?text=Product{index}",
-            "created_at": (datetime.utcnow() - timedelta(days=random.randint(1, 90))).isoformat()
+            "created_at": (datetime.now(timezone.utc) - timedelta(days=random.randint(1, 90))).isoformat()
         }
     
     def generate_metrics_for_product(self, product_id: int, days: int = 30) -> List[Dict]:
@@ -55,7 +55,10 @@ class SyntheticDataGenerator:
         
         # Decide if product will be viral
         is_viral = random.random() < 0.3  # 30% chance
-        viral_day = random.randint(5, days - 5) if is_viral else None
+        # Margin shrinks for short histories so randint() never gets an empty range
+        # (the original fixed margin of 5 crashes whenever days < 11, e.g. days=7 in tests)
+        margin = min(5, max(1, days // 3))
+        viral_day = random.randint(margin, days - margin - 1) if is_viral and days > margin * 2 else None
         
         for day in range(days):
             # Apply viral boost if applicable
@@ -64,7 +67,7 @@ class SyntheticDataGenerator:
             else:
                 multiplier = 1 + (day / days) * 0.5  # Slight growth over time
             
-            date = datetime.utcnow() - timedelta(days=days - day - 1)
+            date = datetime.now(timezone.utc) - timedelta(days=days - day - 1)
             
             metric = {
                 "product_id": product_id,

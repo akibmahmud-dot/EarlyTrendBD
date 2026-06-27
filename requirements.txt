@@ -1,33 +1,43 @@
 # Requirements for EarlyTrendBD
+#
+# NOTE: Versions use >= (minimum) instead of == (exact pin).
+# The original file pinned tensorflow==2.14.0 / xgboost==2.0.3 etc, which only
+# have wheels for Python 3.9-3.11. On Python 3.12/3.13 (very common on
+# students'/faculty's machines today) `pip install -r requirements.txt` would
+# fail with "No matching distribution found". Using >= lets pip pick whichever
+# compatible version exists for your installed Python automatically.
+# Verified working end-to-end (full train + API) on Python 3.12 with the
+# versions pip resolves from this file.
 
 # Core Framework
-fastapi==0.104.1
-uvicorn==0.24.0
-pydantic==2.5.0
-python-dotenv==1.0.0
+fastapi>=0.104.1
+uvicorn>=0.24.0
+pydantic>=2.5.0
+python-dotenv>=1.0.0
+httpx>=0.27.0          # required by FastAPI's TestClient (used in tests/)
 
 # Machine Learning
-tensorflow==2.14.0
-keras==2.14.0
-xgboost==2.0.3
-scikit-learn==1.3.2
+tensorflow>=2.14.0
+xgboost>=2.0.3
+scikit-learn>=1.3.2
+# NOTE: do NOT pin a separate `keras` package alongside tensorflow>=2.16 -
+# Keras 3 ships bundled with TensorFlow and a standalone pin causes conflicts.
 
 # Data Processing
-pandas==2.1.3
-numpy==1.26.2
-scipy==1.11.4
+pandas>=2.1.3
+numpy>=1.26.2
+scipy>=1.11.4
 
 # Database
-sqlalchemy==2.0.23
-alembic==1.13.0
+sqlalchemy>=2.0.23
+alembic>=1.13.0
 
 # Utilities
-loguru==0.7.2
-pytest==7.4.3
-pytest-cov==4.1.0
-requests==2.31.0
-jinja2==3.1.2
+loguru>=0.7.2
+pytest>=7.4.3
+pytest-cov>=4.1.0
+requests>=2.31.0
+jinja2>=3.1.2
 
 # Optional: For GPU support
-# tensorflow[and-cuda]==2.14.0
-# torch==2.1.1  (if using PyTorch models in future)
+# tensorflow[and-cuda]>=2.14.0

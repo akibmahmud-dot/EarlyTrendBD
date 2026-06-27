@@ -4,7 +4,7 @@
 import os
 import json
 from typing import Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 from loguru import logger
 import numpy as np
 import pandas as pd
@@ -153,7 +153,7 @@ def format_prediction_response(prediction: Dict[str, Any]) -> Dict[str, Any]:
         "confidence": round(prediction.get("confidence", 0), 4),
         "is_viral": bool(prediction.get("is_viral", False)),
         "recommendation": prediction.get("recommendation", "No recommendation"),
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
 

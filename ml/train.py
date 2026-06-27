@@ -7,6 +7,7 @@ from data.processor import DataProcessor
 from ml.lstm_model import LSTMViralityPredictor
 from ml.xgboost_model import XGBoostViralityPredictor
 from ml.ensemble_model import EnsembleViralityPredictor
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 from loguru import logger
 
 logger.add("logs/training.log")
@@ -77,12 +78,26 @@ class ModelTrainer:
         logger.info("All models trained successfully!")
     
     def evaluate_models(self):
-        """Evaluate all models"""
+        """Evaluate all already-trained models (does NOT retrain them)"""
         logger.info("\n=== Model Evaluation ===")
         
-        # XGBoost evaluation
+        if self.xgboost_model is None or self.xgboost_model.model is None:
+            raise ValueError("Models not trained yet. Call train_all_models() first.")
+        
+        # XGBoost evaluation (evaluate existing model, don't refit)
         logger.info("\nXGBoost Metrics:")
-        xgb_metrics = self.xgboost_model.train(self.X, self.y, feature_names=self.feature_cols)
+        xgb_pred, _ = self.xgboost_model.predict(self.X)
+        xgb_binary = (xgb_pred > 0.5).astype(int)
+        xgb_metrics = {
+            'accuracy': accuracy_score(self.y, xgb_binary),
+            'precision': precision_score(self.y, xgb_binary, zero_division=0),
+            'recall': recall_score(self.y, xgb_binary, zero_division=0),
+            'f1': f1_score(self.y, xgb_binary, zero_division=0),
+        }
+        try:
+            xgb_metrics['auc'] = roc_auc_score(self.y, xgb_pred)
+        except ValueError:
+            xgb_metrics['auc'] = 0.0
         for key, value in xgb_metrics.items():
             logger.info(f"  {key}: {value:.4f}")
         
@@ -95,10 +110,10 @@ class ModelTrainer:
         
         return xgb_metrics
     
-    def get_feature_importance(self):
+    def get_feature_importance(self, top_n: int = 15):
         """Get feature importance from XGBoost"""
         if self.xgboost_model:
-            return self.xgboost_model.get_feature_importance(top_n=15)
+            return self.xgboost_model.get_feature_importance(top_n=top_n)
         return {}
     
     def predict_viral_products(self, top_n: int = 10):

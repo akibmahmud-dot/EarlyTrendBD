@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from api.schemas import PredictionRequest, PredictionResponse, HealthResponse, AnalysisResponse
 from ml.train import ModelTrainer
-from datetime import datetime
+from datetime import datetime, timezone
 import numpy as np
 from loguru import logger
 
@@ -96,9 +96,11 @@ async def predict_virality(request: PredictionRequest):
             recommendation=recommendation,
             top_features=top_features,
             model_used="Ensemble (XGBoost + LSTM)",
-            prediction_timestamp=datetime.utcnow()
+            prediction_timestamp=datetime.now(timezone.utc)
         )
     
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Prediction error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -133,6 +135,8 @@ async def analyze_product(product_name: str):
             recommendation="Product shows strong viral characteristics based on historical data."
         )
     
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Analysis error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -147,6 +151,8 @@ async def get_viral_products(top_n: int = 10):
             "total_products": len(trainer.features_df),
             "viral_products": viral_products.to_dict('records')
         }
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching viral products: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -161,6 +167,8 @@ async def get_feature_importance(top_n: int = 15):
             "features": importance,
             "total_features": len(trainer.feature_cols)
         }
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching feature importance: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -175,6 +183,8 @@ async def get_model_metrics():
             "xgboost_metrics": metrics,
             "status": "Models trained and evaluated"
         }
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching metrics: {e}")
         raise HTTPException(status_code=500, detail=str(e))

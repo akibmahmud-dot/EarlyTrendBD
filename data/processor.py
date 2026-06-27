@@ -25,7 +25,9 @@ class DataProcessor:
         self.metrics_df['date'] = pd.to_datetime(self.metrics_df['date'])
         
         # Merge product info with metrics
-        data = self.metrics_df.merge(self.products_df, on='product_id', how='left')
+        data = self.metrics_df.merge(
+            self.products_df, left_on='product_id', right_on='id', how='left'
+        )
         
         # Group by product for time-series features
         grouped = data.groupby('product_id')
@@ -79,22 +81,30 @@ class DataProcessor:
                 'days_in_trend': group['trend_rank'].notna().sum(),
             }
             
-            # Calculate virality label (target variable)
-            # Viral if: high social engagement + high sales growth + sentiment
-            social_score = agg_features['total_social_engagement'] / 1000  # Normalize
-            growth_score = max(0, agg_features['sales_trend'])  # Positive growth
-            sentiment_score = agg_features['avg_sentiment_score']
-            
-            virality_indicator = (social_score * 0.4 + growth_score * 0.4 + sentiment_score * 0.2)
-            agg_features['is_viral'] = 1 if virality_indicator > 0.6 else 0
-            agg_features['virality_score'] = min(1.0, virality_indicator)
-            
             features_list.append(agg_features)
         
         features_df = pd.DataFrame(features_list)
         
         # Fill NaN values
         features_df = features_df.fillna(0)
+        
+        # Calculate virality label using NORMALIZED components (0-1 range each),
+        # then label the top 30% as viral via percentile threshold.
+        # (Raw sums like total_social_engagement scale with `days`, so a fixed
+        # divisor like /1000 broke down once products had >10 days of history.)
+        social_raw = features_df['total_social_engagement']
+        social_norm = (social_raw - social_raw.min()) / (social_raw.max() - social_raw.min() + 1e-9)
+        
+        growth_raw = features_df['sales_trend'].clip(lower=0)
+        growth_norm = (growth_raw - growth_raw.min()) / (growth_raw.max() - growth_raw.min() + 1e-9)
+        
+        sentiment_norm = features_df['avg_sentiment_score']  # already 0-1
+        
+        virality_indicator = social_norm * 0.4 + growth_norm * 0.4 + sentiment_norm * 0.2
+        threshold = virality_indicator.quantile(0.70)  # top 30% -> viral
+        
+        features_df['virality_score'] = virality_indicator
+        features_df['is_viral'] = (virality_indicator > threshold).astype(int)
         
         logger.info(f"Engineered {len(features_df)} feature sets")
         logger.info(f"Viral products: {features_df['is_viral'].sum()} / {len(features_df)}")

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, Text, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from .base import Base
 
 class Product(Base):
@@ -14,8 +14,8 @@ class Product(Base):
     description = Column(Text, nullable=True)
     initial_price = Column(Float, nullable=True)
     image_url = Column(String(500), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Relationships
     daily_metrics = relationship("DailyMetrics", back_populates="product", cascade="all, delete-orphan")
@@ -26,7 +26,7 @@ class DailyMetrics(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     product_id = Column(Integer, ForeignKey("products.id"), index=True)
-    date = Column(DateTime, default=datetime.utcnow, index=True)
+    date = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     
     # Sales & Views
     sales = Column(Integer, default=0)
@@ -48,7 +48,7 @@ class DailyMetrics(Base):
     search_volume = Column(Integer, default=0)
     trend_rank = Column(Integer, nullable=True)
     
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationship
     product = relationship("Product", back_populates="daily_metrics")
@@ -72,7 +72,7 @@ class Prediction(Base):
     top_features = Column(Text)  # JSON string of important features
     recommendation = Column(Text)
     
-    prediction_date = Column(DateTime, default=datetime.utcnow)
+    prediction_date = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     predicted_for_days_ahead = Column(Integer, default=7)
     
     # Relationship
